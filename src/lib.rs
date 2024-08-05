@@ -19,10 +19,34 @@ pub enum Json {
     True, False, Null,
 }
 
+pub struct JsonConfig {
+    pub max_depth: u32,
+    pub recover_from_errors: bool,
+}
+
+const DEFAULT_CONFIG: JsonConfig = JsonConfig {
+    max_depth: 500,
+    recover_from_errors: false,
+};
+
+impl Default for JsonConfig {
+    fn default() -> Self { DEFAULT_CONFIG }
+}
+
+macro_rules! deserialize {
+    ($text:ident, $conf:ident) => {
+        {
+            let mut tokens = lexer::tokenize($text)?;
+            parser::parse(&mut tokens, $conf)
+        }
+    };
+}
 impl Json {
     pub fn deserialize(text: &str) -> Result<Json> {
-        let mut tokens = lexer::tokenize(text)?;
-        parser::parse(&mut tokens)
+        deserialize!(text, DEFAULT_CONFIG)
+    }
+    pub fn deserialize_with_config(text: &str, conf: JsonConfig) -> Result<Json> {
+        deserialize!(text, conf)
     }
     pub fn serialize(&self, out: &mut dyn Write) -> std::fmt::Result {
         match self {

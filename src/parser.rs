@@ -4,11 +4,14 @@ use std::collections::HashMap;
 use crate::lexer::token::Token;
 use crate::lexer::token::TokenType;
 use crate::Json;
+use crate::JsonConfig;
 use crate::Result;
 
 struct Parser<'a> {
     tokens: &'a mut [Token],
     curr: usize,
+    conf: JsonConfig,
+    depth: u32,
 }
 
 impl<'a> Parser<'a> {
@@ -23,10 +26,23 @@ impl<'a> Parser<'a> {
         Err(msg.into())
     }
     fn value(&mut self) -> Result<Json> {
+        if self.depth > self.conf.max_depth {
+            return self.error("Max depth reached")
+        }
+        macro_rules! enter {
+            ($c:expr) => {
+                {
+                    self.depth += 1;
+                    let j = $c;
+                    self.depth -= 1;
+                    j
+                }
+            };
+        }
         if self.match_type(TokenType::LSquareBracket) {
-            self.array()
+            enter!( self.array() )
         } else if self.match_type(TokenType::LeftBrace) {
-            self.object()
+            enter!( self.object() )
         } else if self.match_type(TokenType::Number) {
             self.number()
         } else if self.match_type(TokenType::String) {
@@ -48,6 +64,13 @@ impl<'a> Parser<'a> {
             if !elems.is_empty() {
                 self.consume(TokenType::Comma, "Expected comma after element")?;
             }
+            if self.peek()?.get_type() == TokenType::RSquareBracket {
+                if self.conf.recover_from_errors {
+                    continue
+                } else {
+                   return self.error("Trailing comma on list");
+                }
+            }
             let json = self.value()?;
             elems.push(json);
         }
@@ -64,7 +87,13 @@ impl<'a> Parser<'a> {
 
             if ! self.check(TokenType::String) {
                 let msg = match self.previous().unwrap().get_type() {
-                    TokenType::Comma => "Trailing comma in object",
+                    TokenType::Comma => {
+                        if self.conf.recover_from_errors {
+                            continue
+                        } else {
+                            "Trailing comma in object"
+                        }
+                    },
                     _ => "Expected STRING",
                 };
                 return self.error(msg);
@@ -121,9 +150,11 @@ impl<'a> Parser<'a> {
     }
 }
 
-pub fn parse(tokens: &mut [Token]) -> Result<Json> {
+pub fn parse(tokens: &mut [Token], conf: JsonConfig) -> Result<Json> {
     Parser {
         tokens,
-        curr: 0
+        curr: 0,
+        depth: 0,
+        conf,
     }.parse()
 }
