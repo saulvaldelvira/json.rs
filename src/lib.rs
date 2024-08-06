@@ -62,7 +62,7 @@ impl Default for JsonConfig {
 macro_rules! deserialize {
     ($text:ident, $conf:ident) => {
         {
-            let mut tokens = lexer::tokenize($text)?;
+            let mut tokens = lexer::tokenize($text .as_ref())?;
             parser::parse(&mut tokens, $conf)
         }
     };
@@ -70,12 +70,12 @@ macro_rules! deserialize {
 
 impl Json {
     /// Deserializes the given string into a [Json] object
-    pub fn deserialize(text: &str) -> Result<Json> {
+    pub fn deserialize(text: impl AsRef<str>) -> Result<Json> {
         deserialize!(text, DEFAULT_CONFIG)
     }
     /// Deserializes the given string into a [Json] object
     /// using the given [JsonConfig]
-    pub fn deserialize_with_config(text: &str, conf: JsonConfig) -> Result<Json> {
+    pub fn deserialize_with_config(text: impl AsRef<str>, conf: JsonConfig) -> Result<Json> {
         deserialize!(text, conf)
     }
     /// Serializes the JSON object into a string
@@ -99,8 +99,7 @@ impl Json {
                         out.write_char(',')?;
                     }
                     first = false;
-                    out.write_str(k)?;
-                    out.write_char(':')?;
+                    write!(out, "\"{k}\":")?;
                     v.serialize(out)?;
                 }
                 out.write_char('}')?;
@@ -113,6 +112,56 @@ impl Json {
         }
         Ok(())
     }
+    /// Attempts to get a value of the given json object.
+    /// If the json enum is not an Object variant, or if
+    /// it doesn't contain the key, returns None
+    pub fn get(&self, key: impl AsRef<str>) -> Option<&Json> {
+        if let Json::Object(o) = self {
+            o.get(key.as_ref())
+        } else {
+            None
+        }
+    }
+    /// Same as [get], but with a mutable reference
+    pub fn get_mut(&mut self, key: impl AsRef<str>) -> Option<&mut Json> {
+        if let Json::Object(o) = self {
+            o.get_mut(key.as_ref())
+        } else {
+            None
+        }
+    }
+    /// Attempts to get a value of the given json array.
+    /// If the json enum is not an Array variant, or if
+    /// it doesn't contain the key, returns None
+    pub fn nth(&self, i: usize) -> Option<&Json> {
+        if let Json::Array(arr) = self {
+            arr.get(i)
+        } else {
+            None
+        }
+    }
+    /// Same as [nth], but with a mutable reference
+    pub fn nth_mut(&mut self, i: usize) -> Option<&mut Json> {
+        if let Json::Array(arr) = self {
+            arr.get_mut(i)
+        } else {
+            None
+        }
+    }
+    /// Attempts to get the inner f64 of the json object, if
+    /// it is a Number variant
+    pub fn number(&self) -> Option<f64> {
+        if let Json::Number(n) = self {
+            Some(*n)
+        } else { None }
+    }
+    /// Attempts to get the inner String of the json object, if
+    /// it is a String variant
+    pub fn string(&self) -> Option<&str> {
+        if let Json::String(s) = self {
+            Some(s)
+        } else { None }
+    }
 }
 
 impl Display for Json {
@@ -120,5 +169,17 @@ impl Display for Json {
         let mut string = String::new();
         self.serialize(&mut string).unwrap();
         write!(f, "{}", string)
+    }
+}
+
+impl From<f64> for Json {
+    fn from(value: f64) -> Self {
+        Self::Number(value)
+    }
+}
+
+impl From<String> for Json {
+    fn from(value: String) -> Self {
+        Self::String(value)
     }
 }
