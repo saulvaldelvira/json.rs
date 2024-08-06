@@ -1,4 +1,23 @@
 //! Json parser
+//!
+//! # Example
+//! ```
+//! use json::Json;
+//!
+//! let j = Json::deserialize(r#"{
+//!     "array" : [ 1, 2, "3", null ],
+//!     "true" : true,
+//!     "nested" : {
+//!         "inner" : []
+//!     }
+//! }"#).unwrap();
+//!
+//! let Json::Object(map) = j else { panic!() };
+//! assert!(
+//!     matches!(
+//!         map.get("true"),
+//!         Some(Json::True)));
+//! ```
 
 use std::{borrow::Cow, collections::HashMap, fmt::{Display, Write}};
 
@@ -10,6 +29,7 @@ pub mod export;
 
 pub type Result<T> = std::result::Result<T,Cow<'static,str>>;
 
+/// Represents a JSON object
 #[derive(Debug)]
 pub enum Json {
     Array(Vec<Json>),
@@ -19,8 +39,14 @@ pub enum Json {
     True, False, Null,
 }
 
+/// Configures the JSON parser
 pub struct JsonConfig {
+    /// Max depth for nested objects
     pub max_depth: u32,
+    /// Recover from errors.
+    /// For example, trailing commas on objects
+    /// are not allowed, but this flag makes
+    /// the parser skip them.
     pub recover_from_errors: bool,
 }
 
@@ -41,13 +67,18 @@ macro_rules! deserialize {
         }
     };
 }
+
 impl Json {
+    /// Deserializes the given string into a [Json] object
     pub fn deserialize(text: &str) -> Result<Json> {
         deserialize!(text, DEFAULT_CONFIG)
     }
+    /// Deserializes the given string into a [Json] object
+    /// using the given [JsonConfig]
     pub fn deserialize_with_config(text: &str, conf: JsonConfig) -> Result<Json> {
         deserialize!(text, conf)
     }
+    /// Serializes the JSON object into a string
     pub fn serialize(&self, out: &mut dyn Write) -> std::fmt::Result {
         match self {
             Json::Array(elements) => {

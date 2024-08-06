@@ -1,7 +1,10 @@
+//! C bindings for the json crate
+
 use std::{ffi::{c_char, CStr}, mem, ptr, slice};
 
 type RustJson = crate::Json;
 
+/// Json struct for C
 #[repr(C)]
 pub enum Json {
     Array {
@@ -26,8 +29,8 @@ pub struct JsonString {
 
 impl JsonString {
     fn from_string(mut o: String) -> Self {
-        o.push('\0');
         let len = o.len();
+        o.push('\0'); /* Make sure the string is NULL terminated  */
         let mut data = o.into_boxed_str();
         let buf = data.as_mut_ptr();
         mem::forget(data);
@@ -81,6 +84,13 @@ impl Json {
 }
 
 
+/// Deserializes the given string into a Json struct.
+/// If any error is encountered while parsing, the
+/// type of the Json struct is Json::Error.
+///
+/// The caller of this function must free the returned
+/// struct by calling [json_free] afterwards.
+///
 /// # Safety
 /// The pointer must be a valid NULL terminated C string
 #[no_mangle]
@@ -110,6 +120,7 @@ fn vec_2_ptr<T>(vec: Vec<T>) -> *mut T {
     elems
 }
 
+/// Frees the given Json structure.
 #[no_mangle]
 pub extern "C"
 fn json_free(json: Json) {
@@ -132,7 +143,7 @@ fn json_free(json: Json) {
             mem::drop(s);
         },
         Json::Number(_) |
-            Json::True | Json::False |
-            Json::Null | Json::Error => {},
+        Json::True | Json::False |
+        Json::Null | Json::Error => {},
     }
 }

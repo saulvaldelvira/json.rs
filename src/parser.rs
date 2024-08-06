@@ -14,6 +14,19 @@ struct Parser<'a> {
     depth: u32,
 }
 
+trait StripQuotes {
+    fn strip_quotes(&mut self);
+}
+
+impl StripQuotes for String {
+    fn strip_quotes(&mut self) {
+        self.pop();
+        if !self.is_empty() {
+            self.remove(0);
+        }
+    }
+}
+
 impl<'a> Parser<'a> {
     fn parse(&mut self) -> Result<Json> {
         self.value()
@@ -99,7 +112,8 @@ impl<'a> Parser<'a> {
                 return self.error(msg);
             }
             let key = self.advance()?;
-            let key = key.take_lexem();
+            let mut key = key.take_lexem();
+            key.strip_quotes();
 
             self.consume(TokenType::Colon, "Expected ':'")?;
             let json = self.value()?;
@@ -113,10 +127,8 @@ impl<'a> Parser<'a> {
         Ok( Json::Number(n) )
     }
     fn string(&mut self) -> Result<Json> {
-        let s = self.previous()?.get_lexem()
-                    .strip_prefix('"').unwrap()
-                    .strip_suffix('"').unwrap()
-                    .to_owned();
+        let mut s = self.previous()?.take_lexem();
+        s.strip_quotes();
         Ok( Json::String(s) )
     }
     fn consume(&mut self, t: TokenType, msg: &'static str) -> Result<&mut Token> {
