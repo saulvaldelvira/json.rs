@@ -162,6 +162,33 @@ impl Json {
             Some(s)
         } else { None }
     }
+    /// Attempts to get the inner Object of the json object, if
+    /// it is an Object variant
+    pub fn object(&self) -> Option<&HashMap<String,Json>> {
+        if let Json::Object(o) = self {
+            Some(o)
+        } else { None }
+    }
+    /// Attempts to get the inner Array of the json object, if
+    /// it is an Array variant
+    pub fn array(&self) -> Option<&[Json]> {
+        if let Json::Array(o) = self {
+            Some(o)
+        } else { None }
+    }
+    /// Attempts to get the inner boolean value of the json object, if
+    /// it is a True or False variant
+    pub fn boolean(&self) -> Option<bool> {
+        if let Json::True = self {
+            Some(true)
+        } else if let Json::False = self {
+            Some(false)
+        } else { None }
+    }
+    /// Returns true if the json is a Nil variant
+    pub fn is_null(&self) -> bool {
+        matches!(self,Json::Null)
+    }
 }
 
 impl Display for Json {
