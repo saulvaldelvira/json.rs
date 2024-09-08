@@ -28,7 +28,7 @@ pub struct JsonString {
 }
 
 impl JsonString {
-    fn from_string(mut o: String) -> Self {
+    fn new(mut o: String) -> Self {
         let len = o.len();
         o.push('\0'); /* Make sure the string is NULL terminated  */
         let mut data = o.into_boxed_str();
@@ -63,7 +63,7 @@ impl Json {
             },
             RustJson::Object(obj) => {
                 let elems = obj.into_iter().map(|(k,v)| {
-                    let string = JsonString::from_string(k);
+                    let string = JsonString::new(k);
                     let v = Json::from_json(v);
                     let v = Box::new(v);
                     Pair { key : string, val: Box::into_raw(v) }
@@ -73,7 +73,7 @@ impl Json {
                 Json::Object{ elems, len }
             },
             RustJson::String(s) => {
-                Json::String(JsonString::from_string(s))
+                Json::String(JsonString::new(s))
             },
             RustJson::Number(n) => Json::Number(n),
             RustJson::True => Json::True,
@@ -82,7 +82,6 @@ impl Json {
         }
     }
 }
-
 
 /// Deserializes the given string into a Json struct.
 /// If any error is encountered while parsing, the
@@ -99,6 +98,29 @@ fn json_deserialize(ptr: *const c_char) -> Json {
     let cstr = unsafe { CStr::from_ptr(ptr) };
     if let Ok(s) = cstr.to_str() {
         if let Ok(json) = crate::Json::deserialize(s) {
+            return Json::from_json(json);
+        }
+    }
+    Json::Error
+}
+
+/// Deserializes the given string into a Json struct.
+/// Using the given JsonConfig struct
+///
+/// If any error is encountered while parsing, the
+/// type of the Json struct is Json::Error.
+///
+/// The caller of this function must free the returned
+/// struct by calling [json_free] afterwards.
+///
+/// # Safety
+/// The pointer must be a valid NULL terminated C string
+#[no_mangle]
+pub unsafe extern "C"
+fn json_deserialize_with_config(ptr: *const c_char, conf: crate::JsonConfig) -> Json {
+    let cstr = unsafe { CStr::from_ptr(ptr) };
+    if let Ok(s) = cstr.to_str() {
+        if let Ok(json) = crate::Json::deserialize_with_config(s, conf) {
             return Json::from_json(json);
         }
     }

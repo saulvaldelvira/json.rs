@@ -40,6 +40,7 @@ pub enum Json {
 }
 
 /// Configures the JSON parser
+#[repr(C)]
 pub struct JsonConfig {
     /// Max depth for nested objects
     pub max_depth: u32,
