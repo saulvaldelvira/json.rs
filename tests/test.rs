@@ -1,7 +1,7 @@
 use core::panic;
 use std::ops::Deref;
 
-use json::Json;
+use json::{json, Json};
 
 #[test]
 fn simple() {
@@ -32,10 +32,14 @@ fn nested() {
         }]
     }"#).unwrap();
 
-    let arr = j.get("array").unwrap();
-    let two = arr.nth(1).unwrap();
-    assert_eq!(two.number().unwrap(), 2.0);
-    let nested = arr.nth(3).unwrap();
-    let val = nested.get("nested_1").unwrap();
-    assert_eq!(val.number().unwrap(), 1.0);
+    let expected = json!(
+        {
+            "array" : [1,2,3, {
+                "nested_1" : 1
+            }]
+        }
+    );
+
+    assert_eq!(expected, j);
 }
+

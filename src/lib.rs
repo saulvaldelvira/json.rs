@@ -19,7 +19,7 @@
 //!         Some(Json::True)));
 //! ```
 
-use std::{borrow::Cow, collections::HashMap, fmt::{Display, Write}};
+use std::{borrow::Cow, collections::HashMap, fmt::{Display, Write}, i16};
 
 mod lexer;
 mod parser;
@@ -30,7 +30,7 @@ pub mod export;
 pub type Result<T> = std::result::Result<T,Cow<'static,str>>;
 
 /// Represents a JSON object
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub enum Json {
     Array(Box<[Json]>),
     Object(HashMap<Box<str>,Json>),
@@ -200,11 +200,20 @@ impl Display for Json {
     }
 }
 
-impl From<f64> for Json {
-    fn from(value: f64) -> Self {
-        Self::Number(value)
-    }
+macro_rules! from_num {
+    ( $( $nty:ty ),* ) => {
+        $(
+            impl From<$nty> for Json {
+                fn from(value: $nty) -> Self {
+                    Self::Number(value.into())
+                }
+            }
+        )*
+    };
 }
+
+from_num!(f64,f32,i32,i16,u16,u8);
+
 
 impl From<Box<str>> for Json {
     fn from(value: Box<str>) -> Self {
@@ -221,5 +230,43 @@ impl<'a> From<&'a str> for Json {
 impl From<Vec<Json>> for Json {
     fn from(value: Vec<Json>) -> Self {
         Self::Array(value.into())
+    }
+}
+
+impl From<HashMap<Box<str>,Json>> for Json {
+    fn from(value: HashMap<Box<str>,Json>) -> Self {
+        Self::Object(value)
+    }
+}
+
+impl From<bool> for Json {
+    fn from(value: bool) -> Self {
+        if value { Json::True } else { Json::False }
+    }
+}
+
+#[macro_export]
+macro_rules! json {
+    ( $lit:literal ) => {
+        $crate::Json::from( $lit )
+    };
+    ( [ $( $e:tt ),* ] ) => {
+        $crate::Json::from(
+            vec![
+                $(
+                    json!($e)
+                ),*
+            ]
+        )
+    };
+    ( { $( $key:literal : $val:tt ),*  } ) => {
+        {
+            let mut map = std::collections::HashMap::new();
+            $( map.insert($key .into(), json!($val) );  )*
+            $crate::Json::from ( map )
+        }
+    };
+    ( null ) => {
+        $crate::Json::Null
     }
 }
