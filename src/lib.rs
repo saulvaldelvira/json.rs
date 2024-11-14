@@ -32,9 +32,9 @@ pub type Result<T> = std::result::Result<T,Cow<'static,str>>;
 /// Represents a JSON object
 #[derive(Debug)]
 pub enum Json {
-    Array(Vec<Json>),
-    Object(HashMap<String,Json>),
-    String(String),
+    Array(Box<[Json]>),
+    Object(HashMap<Box<str>,Json>),
+    String(Box<str>),
     Number(f64),
     True, False, Null,
 }
@@ -165,7 +165,7 @@ impl Json {
     }
     /// Attempts to get the inner Object of the json object, if
     /// it is an Object variant
-    pub fn object(&self) -> Option<&HashMap<String,Json>> {
+    pub fn object(&self) -> Option<&HashMap<Box<str>,Json>> {
         if let Json::Object(o) = self {
             Some(o)
         } else { None }
@@ -206,8 +206,20 @@ impl From<f64> for Json {
     }
 }
 
-impl From<String> for Json {
-    fn from(value: String) -> Self {
+impl From<Box<str>> for Json {
+    fn from(value: Box<str>) -> Self {
         Self::String(value)
+    }
+}
+
+impl<'a> From<&'a str> for Json {
+    fn from(value: &'a str) -> Self {
+        Self::String(value.into())
+    }
+}
+
+impl From<Vec<Json>> for Json {
+    fn from(value: Vec<Json>) -> Self {
+        Self::Array(value.into())
     }
 }

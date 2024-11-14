@@ -88,7 +88,7 @@ impl<'a> Parser<'a> {
             elems.push(json);
         }
         self.consume(TokenType::RSquareBracket, "Unclosed '['")?;
-        Ok( Json::Array(elems) )
+        Ok( elems.into() )
     }
     fn object(&mut self) -> Result<Json> {
         let mut elems = HashMap::new();
@@ -117,7 +117,7 @@ impl<'a> Parser<'a> {
 
             self.consume(TokenType::Colon, "Expected ':'")?;
             let json = self.value()?;
-            elems.insert(key,json);
+            elems.insert(key.into(),json);
         }
         self.consume(TokenType::RightBrace, "Unclosed '{'")?;
         Ok( Json::Object(elems) )
@@ -129,7 +129,7 @@ impl<'a> Parser<'a> {
     fn string(&mut self) -> Result<Json> {
         let mut s = self.previous()?.take_lexem();
         s.strip_quotes();
-        Ok( Json::String(s) )
+        Ok( Json::String(s.into()) )
     }
     fn consume(&mut self, t: TokenType, msg: &'static str) -> Result<&mut Token> {
         if self.check(t) { return self.advance(); }

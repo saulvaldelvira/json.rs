@@ -1,4 +1,5 @@
 use core::panic;
+use std::ops::Deref;
 
 use json::Json;
 
@@ -18,7 +19,7 @@ fn simple() {
     ));
     let string = "\"string\"".to_owned();
     match Json::deserialize(&string) {
-       Ok(Json::String(s)) => assert_eq!(s, "string"),
+       Ok(Json::String(s)) => assert_eq!(s.deref(), "string"),
        _ => panic!()
     }
 }

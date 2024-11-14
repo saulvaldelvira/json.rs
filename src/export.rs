@@ -56,14 +56,14 @@ impl Json {
     fn from_json(json: RustJson) -> Self {
         match json {
             RustJson::Array(arr) => {
-                let elems = arr.into_iter().map(Json::from_json).collect::<Vec<_>>();
+                let elems = arr.into_vec().into_iter().map(Json::from_json).collect::<Vec<_>>();
                 let len = elems.len();
                 let elems = vec_2_ptr(elems);
                 Json::Array{ elems, len }
             },
             RustJson::Object(obj) => {
                 let elems = obj.into_iter().map(|(k,v)| {
-                    let string = JsonString::new(k);
+                    let string = JsonString::new(k.into_string());
                     let v = Json::from_json(v);
                     let v = Box::new(v);
                     Pair { key : string, val: Box::into_raw(v) }
@@ -73,7 +73,7 @@ impl Json {
                 Json::Object{ elems, len }
             },
             RustJson::String(s) => {
-                Json::String(JsonString::new(s))
+                Json::String(JsonString::new(s.into_string()))
             },
             RustJson::Number(n) => Json::Number(n),
             RustJson::True => Json::True,
