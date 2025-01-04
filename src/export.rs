@@ -34,7 +34,7 @@ impl JsonString {
         let mut data = o.into_boxed_str();
         let buf = data.as_mut_ptr();
         mem::forget(data);
-        Self { len, buf }
+        Self { buf, len }
     }
 }
 
@@ -42,7 +42,7 @@ impl Drop for JsonString {
     fn drop(&mut self) {
         let elems = ptr::slice_from_raw_parts_mut(self.buf, self.len);
         let b = unsafe { Box::from_raw(elems) };
-        mem::drop( b )
+        mem::drop( b );
     }
 }
 
@@ -85,10 +85,10 @@ impl Json {
 
 /// Deserializes the given string into a Json struct.
 /// If any error is encountered while parsing, the
-/// type of the Json struct is Json::Error.
+/// type of the Json struct is `Json::Error`.
 ///
 /// The caller of this function must free the returned
-/// struct by calling [json_free] afterwards.
+/// struct by calling [`json_free`] afterwards.
 ///
 /// # Safety
 /// The pointer must be a valid NULL terminated C string
@@ -105,13 +105,13 @@ fn json_deserialize(ptr: *const c_char) -> Json {
 }
 
 /// Deserializes the given string into a Json struct.
-/// Using the given JsonConfig struct
+/// Using the given `JsonConfig` struct
 ///
 /// If any error is encountered while parsing, the
-/// type of the Json struct is Json::Error.
+/// type of the Json struct is `Json::Error`.
 ///
 /// The caller of this function must free the returned
-/// struct by calling [json_free] afterwards.
+/// struct by calling [`json_free`] afterwards.
 ///
 /// # Safety
 /// The pointer must be a valid NULL terminated C string

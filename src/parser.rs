@@ -16,7 +16,7 @@ struct Parser<'a> {
     depth: u32,
 }
 
-impl<'a> Parser<'a> {
+impl Parser<'_> {
     fn parse(&mut self) -> Result<Json> {
         self.value()
     }
@@ -70,9 +70,8 @@ impl<'a> Parser<'a> {
             if self.peek()?.get_type() == TokenKind::RSquareBracket {
                 if self.conf.recover_from_errors {
                     continue
-                } else {
-                   return self.error("Trailing comma on list");
                 }
+                return self.error("Trailing comma on list");
             }
             let json = self.value()?;
             elems.push(json);
@@ -93,9 +92,8 @@ impl<'a> Parser<'a> {
                     TokenKind::Comma => {
                         if self.conf.recover_from_errors {
                             continue
-                        } else {
-                            "Trailing comma in object"
                         }
+                        "Trailing comma in object"
                     },
                     _ => "Expected STRING",
                 };
@@ -106,7 +104,7 @@ impl<'a> Parser<'a> {
 
             self.consume(TokenKind::Colon, "Expected ':'")?;
             let json = self.value()?;
-            elems.insert(key.into(),json);
+            elems.insert(key,json);
         }
         self.consume(TokenKind::RightBrace, "Unclosed '{'")?;
         Ok( Json::Object(elems) )
@@ -118,7 +116,7 @@ impl<'a> Parser<'a> {
         Box::from(slice)
     }
     fn number(&mut self) -> Result<Json> {
-        let n: f64 = self.previous()?.span().slice(self.src).parse().unwrap();
+        let n: f64 = self.previous()?.span().slice(self.src).parse()?;
         Ok( Json::Number(n) )
     }
     fn string(&mut self) -> Result<Json> {

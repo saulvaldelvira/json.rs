@@ -45,7 +45,7 @@ impl<'a> Cursor<'a> {
     }
     pub fn file_pos(&self) -> FilePosition { self.file_pos }
     pub fn advance(&mut self) -> char {
-        let c = self.chars.next().map(|(_,c)| c).unwrap_or('\0');
+        let c = self.chars.next().map_or('\0', |(_,c)| c);
         self.current += 1;
         self.file_pos.end_col += 1;
         if c == '\n' {
@@ -68,15 +68,13 @@ impl<'a> Cursor<'a> {
         self.chars
             .clone()
             .next()
-            .map(|(_,c)| c)
-            .unwrap_or('\0')
+            .map_or('\0', |(_,c)| c)
     }
     pub fn peek_next(&self) -> char {
         let mut iter = self.chars.clone();
         iter.next();
         iter.next()
-            .map(|(_,c)| c)
-            .unwrap_or('\0')
+            .map_or('\0', |(_,c)| c)
     }
     pub fn match_next(&mut self, c: char) -> bool {
         if self.peek() == c {

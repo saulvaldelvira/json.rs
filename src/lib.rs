@@ -19,6 +19,12 @@
 //!         Some(Json::True)));
 //! ```
 
+#![warn(clippy::pedantic)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::must_use_candidate
+)]
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[macro_use]
@@ -48,7 +54,8 @@ mod parser;
 #[cfg(feature = "bindings")]
 pub mod export;
 
-pub type Result<T> = core::result::Result<T,Cow<'static,str>>;
+mod error;
+pub type Result<T> = core::result::Result<T,error::Error>;
 
 /// Represents a JSON object
 #[derive(Debug,PartialEq)]
@@ -97,11 +104,11 @@ impl Json {
         deserialize!(text, DEFAULT_CONFIG)
     }
     /// Deserializes the given string into a [Json] object
-    /// using the given [JsonConfig]
+    /// using the given [`JsonConfig`]
     pub fn deserialize_with_config(text: impl AsRef<str>, conf: JsonConfig) -> Result<Json> {
         deserialize!(text, conf)
     }
-    /// Serializes the JSON object into a fmt::Write
+    /// Serializes the JSON object into a `fmt::Write`
     pub fn serialize(&self, out: &mut dyn Write) -> core::fmt::Result {
         match self {
             Json::Array(elements) => {

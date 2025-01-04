@@ -7,7 +7,6 @@ pub use span::Span;
 
 use crate::prelude::*;
 
-
 use crate::Result;
 
 pub mod token;
@@ -23,7 +22,7 @@ pub fn tokenize(text: &str) -> Result<Vec<Token>> {
     }.tokenize()
 }
 
-impl<'a> Lexer<'a> {
+impl Lexer<'_> {
     fn tokenize(&mut self) -> Result<Vec<Token>> {
         let mut tokens:Vec<Token> = Vec::new();
         while !self.c.is_finished() {
@@ -34,6 +33,7 @@ impl<'a> Lexer<'a> {
         }
         Ok(tokens)
     }
+    #[allow(clippy::unnecessary_wraps)]
     fn add_token(&self, token_type: TokenKind) -> Result<Option<Token>> {
         Ok(Some(Token::new(
                 token_type, self.c.get_span())))
@@ -73,6 +73,7 @@ impl<'a> Lexer<'a> {
                 }
         }
     }
+    #[allow(clippy::unnecessary_wraps)]
     fn comment(&mut self) -> Result<Option<Token>> {
         self.c.advance_while(|c| *c != '\n');
         Ok(None)
@@ -123,7 +124,7 @@ impl<'a> Lexer<'a> {
     }
     fn error(&mut self, msg: &str) -> Result<Option<Token>> {
         let FilePosition { start_line, start_col, .. } = self.c.file_pos();
-        let msg = format!("[{start_line}:{start_col}] {}", msg);
+        let msg = format!("[{start_line}:{start_col}] {msg}");
         Err(msg.into())
     }
 }

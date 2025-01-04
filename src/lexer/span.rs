@@ -31,7 +31,7 @@ impl fmt::Display for FilePosition {
 impl Span {
     /// Slices the given string with this span
     #[must_use]
-    #[inline(always)]
+    #[inline]
     pub fn slice<'a>(&self, src: &'a str) -> &'a str {
         &src[self.offset..self.offset + self.len]
     }
