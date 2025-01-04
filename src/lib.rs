@@ -46,8 +46,6 @@ mod prelude {
 
 use prelude::*;
 
-pub use prelude::Map;
-
 mod lexer;
 mod parser;
 
@@ -55,7 +53,8 @@ mod parser;
 pub mod export;
 
 mod error;
-pub type Result<T> = core::result::Result<T,error::Error>;
+
+type Result<T> = core::result::Result<T,error::Error>;
 
 /// Represents a JSON object
 #[derive(Debug,PartialEq)]
@@ -79,8 +78,9 @@ pub struct JsonConfig {
     pub recover_from_errors: bool,
 }
 
+/// Default config used by [`Json::deserialize`]
 const DEFAULT_CONFIG: JsonConfig = JsonConfig {
-    max_depth: 500,
+    max_depth: u32::MAX,
     recover_from_errors: false,
 };
 
@@ -100,6 +100,11 @@ macro_rules! deserialize {
 
 impl Json {
     /// Deserializes the given string into a [Json] object
+    ///
+    /// ## Configuration used
+    /// [`max_depth`](JsonConfig::max_depth) = [`u32::MAX`]
+    ///
+    /// [`recover_from_errors`](JsonConfig::recover_from_errors) = false
     pub fn deserialize(text: impl AsRef<str>) -> Result<Json> {
         deserialize!(text, DEFAULT_CONFIG)
     }
@@ -152,7 +157,7 @@ impl Json {
             None
         }
     }
-    /// Same as [get], but with a mutable reference
+    /// Same as [get](Self::get), but with a mutable reference
     pub fn get_mut(&mut self, key: impl AsRef<str>) -> Option<&mut Json> {
         if let Json::Object(o) = self {
             o.get_mut(key.as_ref())
@@ -170,7 +175,7 @@ impl Json {
             None
         }
     }
-    /// Same as [nth], but with a mutable reference
+    /// Same as [nth](Self::nth), but with a mutable reference
     pub fn nth_mut(&mut self, i: usize) -> Option<&mut Json> {
         if let Json::Array(arr) = self {
             arr.get_mut(i)
@@ -272,6 +277,26 @@ impl From<bool> for Json {
     }
 }
 
+#[doc(hidden)]
+pub use prelude::Map;
+
+/// Builds a [Json] object
+///
+/// # Example
+/// ```
+/// use json::json;
+///
+/// let j = json!({
+///     "hello" : ["w", 0, "r", "ld"],
+///     "array" : [
+///         { "key" : "val" },
+///         12.21,
+///         null,
+///         true,
+///         false
+///     ]
+/// });
+/// ```
 #[macro_export]
 macro_rules! json {
     ( $lit:literal ) => {
