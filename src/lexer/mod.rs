@@ -1,6 +1,8 @@
 mod cursor;
 mod span;
 
+use crate::prelude::*;
+
 use cursor::Cursor;
 pub use span::Span;
 

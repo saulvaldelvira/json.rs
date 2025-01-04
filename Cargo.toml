@@ -1,6 +1,6 @@
 [package]
 name = "jsonrs"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 description = "Json parser"
 authors = ["Saúl Valdelvira <saul@saulv.es>"]
@@ -17,5 +17,6 @@ crate-type = [ "lib", "cdylib", "staticlib" ]
 cbindgen = { version = "0.24.0", optional = true }
 
 [features]
-default = []
+default = ["std"]
+std = []
 bindings = ["dep:cbindgen"]

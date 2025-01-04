@@ -1,5 +1,7 @@
-use std::fmt;
+use core::fmt;
+
 use crate::lexer::span::Span;
+use crate::prelude::*;
 
 #[derive(Clone,Copy,Debug,PartialEq)]
 pub enum TokenType {

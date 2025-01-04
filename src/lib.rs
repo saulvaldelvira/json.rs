@@ -19,7 +19,26 @@
 //!         Some(Json::True)));
 //! ```
 
-use std::{borrow::Cow, collections::HashMap, fmt::{Display, Write}, i16};
+#![cfg_attr(not(feature = "std"), no_std)]
+
+#[macro_use]
+extern crate alloc;
+
+mod prelude {
+    pub use alloc::string::{String,ToString};
+    pub use core::fmt::{self,Display,Write};
+    pub use alloc::vec::Vec;
+    pub use alloc::borrow::{Cow,ToOwned};
+    pub use alloc::boxed::Box;
+
+    #[cfg(feature = "std")]
+    pub type Map<K,V> = std::collections::HashMap<K,V>;
+
+    #[cfg(not(feature = "std"))]
+    pub type Map<K,V> = alloc::collections::BTreeMap<K,V>;
+}
+
+use prelude::*;
 
 mod lexer;
 mod parser;
@@ -27,13 +46,13 @@ mod parser;
 #[cfg(feature = "bindings")]
 pub mod export;
 
-pub type Result<T> = std::result::Result<T,Cow<'static,str>>;
+pub type Result<T> = core::result::Result<T,Cow<'static,str>>;
 
 /// Represents a JSON object
 #[derive(Debug,PartialEq)]
 pub enum Json {
     Array(Box<[Json]>),
-    Object(HashMap<Box<str>,Json>),
+    Object(Map<Box<str>,Json>),
     String(Box<str>),
     Number(f64),
     True, False, Null,
@@ -80,7 +99,7 @@ impl Json {
         deserialize!(text, conf)
     }
     /// Serializes the JSON object into a string
-    pub fn serialize(&self, out: &mut dyn Write) -> std::fmt::Result {
+    pub fn serialize(&self, out: &mut dyn Write) -> core::fmt::Result {
         match self {
             Json::Array(elements) => {
                 out.write_char('[')?;
@@ -165,7 +184,7 @@ impl Json {
     }
     /// Attempts to get the inner Object of the json object, if
     /// it is an Object variant
-    pub fn object(&self) -> Option<&HashMap<Box<str>,Json>> {
+    pub fn object(&self) -> Option<&Map<Box<str>,Json>> {
         if let Json::Object(o) = self {
             Some(o)
         } else { None }
@@ -193,7 +212,7 @@ impl Json {
 }
 
 impl Display for Json {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut string = String::new();
         self.serialize(&mut string).unwrap();
         write!(f, "{}", string)
@@ -233,8 +252,8 @@ impl From<Vec<Json>> for Json {
     }
 }
 
-impl From<HashMap<Box<str>,Json>> for Json {
-    fn from(value: HashMap<Box<str>,Json>) -> Self {
+impl From<Map<Box<str>,Json>> for Json {
+    fn from(value: Map<Box<str>,Json>) -> Self {
         Self::Object(value)
     }
 }

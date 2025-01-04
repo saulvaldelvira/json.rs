@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use core::fmt;
 
 #[derive(Debug,Clone,Copy)]
 pub struct Span {
@@ -14,8 +14,8 @@ impl Default for Span {
     }
 }
 
-impl Display for Span {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for Span {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "[{}:{}]", self.start_line, self.start_col)
     }
 }

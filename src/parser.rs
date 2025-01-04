@@ -1,5 +1,4 @@
-use std::borrow::Cow;
-use std::collections::HashMap;
+use crate::prelude::*;
 
 use crate::lexer::token::Token;
 use crate::lexer::token::TokenType;
@@ -91,7 +90,7 @@ impl<'a> Parser<'a> {
         Ok( elems.into() )
     }
     fn object(&mut self) -> Result<Json> {
-        let mut elems = HashMap::new();
+        let mut elems = Map::new();
         while !self.check(TokenType::RightBrace) {
             if self.is_finished() { break }
             if !elems.is_empty() {
