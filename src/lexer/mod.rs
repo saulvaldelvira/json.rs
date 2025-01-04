@@ -1,15 +1,17 @@
 mod cursor;
-mod span;
+pub mod span;
+
+use cursor::Cursor;
+use span::FilePosition;
+pub use span::Span;
 
 use crate::prelude::*;
 
-use cursor::Cursor;
-pub use span::Span;
 
 use crate::Result;
 
 pub mod token;
-use token::{Token,TokenType};
+use token::{Token,TokenKind};
 
 struct Lexer<'a> {
     c: Cursor<'a>,
@@ -32,22 +34,21 @@ impl<'a> Lexer<'a> {
         }
         Ok(tokens)
     }
-    fn add_token(&self, token_type: TokenType) -> Result<Option<Token>> {
+    fn add_token(&self, token_type: TokenKind) -> Result<Option<Token>> {
         Ok(Some(Token::new(
-                self.c.current_lexem(),
                 token_type, self.c.get_span())))
     }
     fn scan_token(&mut self) -> Result<Option<Token>> {
         match self.c.advance() {
-            '{' => self.add_token(TokenType::LeftBrace),
-            '}' => self.add_token(TokenType::RightBrace),
-            '[' => self.add_token(TokenType::LSquareBracket),
-            ']' => self.add_token(TokenType::RSquareBracket),
-            ',' => self.add_token(TokenType::Comma),
-            '.' => self.add_token(TokenType::Dot),
-            '-' => self.add_token(TokenType::Minus),
-            '+' => self.add_token(TokenType::Plus),
-            ':' => self.add_token(TokenType::Colon),
+            '{' => self.add_token(TokenKind::LeftBrace),
+            '}' => self.add_token(TokenKind::RightBrace),
+            '[' => self.add_token(TokenKind::LSquareBracket),
+            ']' => self.add_token(TokenKind::RSquareBracket),
+            ',' => self.add_token(TokenKind::Comma),
+            '.' => self.add_token(TokenKind::Dot),
+            '-' => self.add_token(TokenKind::Minus),
+            '+' => self.add_token(TokenKind::Plus),
+            ':' => self.add_token(TokenKind::Colon),
             '/' =>
                 if self.c.match_next('/') {
                     self.comment()
@@ -99,7 +100,7 @@ impl<'a> Lexer<'a> {
             if self.c.is_finished() { return self.error("Unterminated string"); }
         }
         self.c.advance();
-        self.add_token(TokenType::String)
+        self.add_token(TokenKind::String)
     }
     fn number(&mut self) -> Result<Option<Token>> {
         self.c.advance_while(char::is_ascii_digit);
@@ -107,21 +108,22 @@ impl<'a> Lexer<'a> {
             self.c.advance();
             self.c.advance_while(char::is_ascii_digit);
         }
-        self.add_token(TokenType::Number)
+        self.add_token(TokenKind::Number)
     }
     fn keyword(&mut self) -> Result<Option<Token>> {
         self.c.advance_while(|c| c.is_ascii_alphanumeric() || *c == '_');
         let lexem = self.c.current_lexem();
         let token_type = match lexem {
-            "true" => TokenType::True,
-            "false" => TokenType::False,
-            "null" => TokenType::Null,
+            "true" => TokenKind::True,
+            "false" => TokenKind::False,
+            "null" => TokenKind::Null,
             _ => return Ok(None),
         };
         self.add_token(token_type)
     }
     fn error(&mut self, msg: &str) -> Result<Option<Token>> {
-        let msg = format!("[{}:{}] {}", self.c.line(), self.c.col(), msg);
+        let FilePosition { start_line, start_col, .. } = self.c.file_pos();
+        let msg = format!("[{start_line}:{start_col}] {}", msg);
         Err(msg.into())
     }
 }

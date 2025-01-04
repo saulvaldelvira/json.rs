@@ -25,10 +25,10 @@
 extern crate alloc;
 
 mod prelude {
-    pub use alloc::string::{String,ToString};
+    pub use alloc::string::ToString;
     pub use core::fmt::{self,Display,Write};
     pub use alloc::vec::Vec;
-    pub use alloc::borrow::{Cow,ToOwned};
+    pub use alloc::borrow::Cow;
     pub use alloc::boxed::Box;
 
     #[cfg(feature = "std")]
@@ -39,6 +39,8 @@ mod prelude {
 }
 
 use prelude::*;
+
+pub use prelude::Map;
 
 mod lexer;
 mod parser;
@@ -82,8 +84,9 @@ impl Default for JsonConfig {
 macro_rules! deserialize {
     ($text:ident, $conf:ident) => {
         {
-            let mut tokens = lexer::tokenize($text .as_ref())?;
-            parser::parse(&mut tokens, $conf)
+            let txt = $text.as_ref();
+            let mut tokens = lexer::tokenize(txt)?;
+            parser::parse(txt, &mut tokens, $conf)
         }
     };
 }
@@ -98,7 +101,7 @@ impl Json {
     pub fn deserialize_with_config(text: impl AsRef<str>, conf: JsonConfig) -> Result<Json> {
         deserialize!(text, conf)
     }
-    /// Serializes the JSON object into a string
+    /// Serializes the JSON object into a fmt::Write
     pub fn serialize(&self, out: &mut dyn Write) -> core::fmt::Result {
         match self {
             Json::Array(elements) => {
@@ -213,9 +216,7 @@ impl Json {
 
 impl Display for Json {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut string = String::new();
-        self.serialize(&mut string).unwrap();
-        write!(f, "{}", string)
+        self.serialize(f)
     }
 }
 
@@ -280,7 +281,7 @@ macro_rules! json {
     };
     ( { $( $key:literal : $val:tt ),*  } ) => {
         {
-            let mut map = std::collections::HashMap::new();
+            let mut map = $crate::Map::new();
             $( map.insert($key .into(), json!($val) );  )*
             $crate::Json::from ( map )
         }

@@ -1,29 +1,31 @@
-use core::str::Chars;
+use core::str::CharIndices;
 
 use crate::lexer::Span;
 
+use super::span::FilePosition;
+
 pub struct Cursor<'a> {
-    chars: Chars<'a>,
-    span: Span,
+    chars: CharIndices<'a>,
     start: usize,
-    start_chars: Chars<'a>,
+    start_chars: CharIndices<'a>,
+    file_pos: FilePosition,
     current: usize,
 }
 
 impl<'a> Cursor<'a> {
     pub fn new(text: &'a str) -> Self {
         Self {
-            chars: text.chars(),
-            span: Span::default(),
+            chars: text.char_indices(),
             start: 0,
-            start_chars: text.chars(),
+            start_chars: text.char_indices(),
+            file_pos: FilePosition::default(),
             current: 0,
         }
     }
     pub fn step(&mut self) {
         self.start = self.current;
-        self.span.start_line = self.span.end_line;
-        self.span.start_col = self.span.end_col;
+        self.file_pos.start_line = self.file_pos.end_line;
+        self.file_pos.start_col = self.file_pos.end_col;
         self.start_chars = self.chars.clone();
     }
     pub fn is_finished(&self) -> bool {
@@ -31,23 +33,24 @@ impl<'a> Cursor<'a> {
     }
     pub fn current_lexem(&self) -> &str {
         let n = self.current - self.start;
-        let n = self.start_chars.clone().take(n).map(|c| c.len_utf8()).sum();
+        let n = self.start_chars.clone().take(n).map(|(_,c)| c.len_utf8()).sum();
         &self.start_chars.as_str()[0..n]
     }
     pub fn get_span(&self) -> Span {
-        let mut span = self.span;
-        span.end_col -= 1;
-        span
+        let offset = self.start_chars.offset();
+        Span {
+            offset,
+            len: self.chars.offset() - offset
+        }
     }
-    pub fn line(&self) -> usize { self.span.end_line }
-    pub fn col(&self) -> usize { self.span.end_col }
+    pub fn file_pos(&self) -> FilePosition { self.file_pos }
     pub fn advance(&mut self) -> char {
-        let c = self.chars.next().unwrap_or('\0');
+        let c = self.chars.next().map(|(_,c)| c).unwrap_or('\0');
         self.current += 1;
-        self.span.end_col += 1;
+        self.file_pos.end_col += 1;
         if c == '\n' {
-            self.span.end_line += 1;
-            self.span.end_col = 1;
+            self.file_pos.end_line += 1;
+            self.file_pos.end_col = 1;
         }
         c
     }
@@ -65,12 +68,15 @@ impl<'a> Cursor<'a> {
         self.chars
             .clone()
             .next()
+            .map(|(_,c)| c)
             .unwrap_or('\0')
     }
     pub fn peek_next(&self) -> char {
         let mut iter = self.chars.clone();
         iter.next();
-        iter.next().unwrap_or('\0')
+        iter.next()
+            .map(|(_,c)| c)
+            .unwrap_or('\0')
     }
     pub fn match_next(&mut self, c: char) -> bool {
         if self.peek() == c {
