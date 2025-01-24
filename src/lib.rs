@@ -68,6 +68,7 @@ pub enum Json {
 
 /// Configures the JSON parser
 #[repr(C)]
+#[derive(Clone,Copy)]
 pub struct JsonConfig {
     /// Max depth for nested objects
     pub max_depth: u32,
@@ -88,16 +89,6 @@ impl Default for JsonConfig {
     fn default() -> Self { DEFAULT_CONFIG }
 }
 
-macro_rules! deserialize {
-    ($text:ident, $conf:ident) => {
-        {
-            let txt = $text.as_ref();
-            let mut tokens = lexer::tokenize(txt)?;
-            parser::parse(txt, &mut tokens, $conf)
-        }
-    };
-}
-
 impl Json {
     /// Deserializes the given string into a [Json] object
     ///
@@ -105,13 +96,16 @@ impl Json {
     /// [`max_depth`](JsonConfig::max_depth) = [`u32::MAX`]
     ///
     /// [`recover_from_errors`](JsonConfig::recover_from_errors) = false
+    #[inline]
     pub fn deserialize(text: impl AsRef<str>) -> Result<Json> {
-        deserialize!(text, DEFAULT_CONFIG)
+        Json::deserialize_with_config(text, DEFAULT_CONFIG)
     }
     /// Deserializes the given string into a [Json] object
     /// using the given [`JsonConfig`]
     pub fn deserialize_with_config(text: impl AsRef<str>, conf: JsonConfig) -> Result<Json> {
-        deserialize!(text, conf)
+        let text = text.as_ref();
+        let tokens = lexer::tokenize(text)?;
+        parser::parse(text, &tokens, conf)
     }
     /// Serializes the JSON object into a `fmt::Write`
     pub fn serialize(&self, out: &mut dyn Write) -> core::fmt::Result {
@@ -245,7 +239,6 @@ macro_rules! from_num {
 }
 
 from_num!(f64,f32,i32,i16,u16,u8);
-
 
 impl From<Box<str>> for Json {
     fn from(value: Box<str>) -> Self {

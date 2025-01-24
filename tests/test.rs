@@ -1,7 +1,7 @@
 use core::panic;
 use std::ops::Deref;
 
-use json::{json, Json};
+use json::{json, Json, JsonConfig};
 
 #[test]
 fn simple() {
@@ -43,3 +43,26 @@ fn nested() {
     assert_eq!(expected, j);
 }
 
+#[test]
+fn maximun_depth() {
+    let mut s = "[12]".to_string();
+    const DEPTH: u32 = 500;
+    let conf = JsonConfig {
+        max_depth: DEPTH,
+        ..Default::default()
+    };
+
+    for _ in 0..DEPTH-1 {
+        s = format!("[{s}]");
+    }
+
+    assert!(Json::deserialize_with_config(&s, conf).is_ok());
+
+    s = format!("[{s}]");
+
+    let j = Json::deserialize_with_config(&s, conf);
+    match j {
+        Ok(_) => panic!("Expected error"),
+        Err(err) => assert_eq!(err.get_message(), "Max depth reached")
+    }
+}

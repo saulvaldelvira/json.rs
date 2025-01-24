@@ -1,4 +1,4 @@
-use crate::lexer::span::FilePosition;
+use crate::error::Error;
 use crate::lexer::Span;
 use crate::prelude::*;
 
@@ -24,9 +24,10 @@ impl Parser<'_> {
         self.curr >= self.tokens.len()
     }
     fn error<T>(&mut self, msg: impl Into<Cow<'static,str>>) -> Result<T> {
-        let FilePosition { start_line, start_col, .. } = self.previous()?.span().file_position(self.src);
-        let msg = format!("[{start_line}:{start_col}]: {}", msg.into());
-        Err(msg.into())
+        let fpos = self.previous()?.span().file_position(self.src);
+        let mut error = Error::new(msg);
+        error.set_file_pos(fpos);
+        Err(error)
     }
     fn value(&mut self) -> Result<Json> {
         if self.depth > self.conf.max_depth {

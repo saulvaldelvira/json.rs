@@ -16,14 +16,14 @@ struct Lexer<'a> {
     c: Cursor<'a>,
 }
 
-pub fn tokenize(text: &str) -> Result<Vec<Token>> {
+pub fn tokenize(text: &str) -> Result<Box<[Token]>> {
     Lexer {
         c: Cursor::new(text),
     }.tokenize()
 }
 
 impl Lexer<'_> {
-    fn tokenize(&mut self) -> Result<Vec<Token>> {
+    fn tokenize(&mut self) -> Result<Box<[Token]>> {
         let mut tokens:Vec<Token> = Vec::new();
         while !self.c.is_finished() {
             self.c.step();
@@ -31,7 +31,7 @@ impl Lexer<'_> {
                 tokens.push(t);
             }
         }
-        Ok(tokens)
+        Ok(tokens.into_boxed_slice())
     }
     #[allow(clippy::unnecessary_wraps)]
     fn add_token(&self, token_type: TokenKind) -> Result<Option<Token>> {
