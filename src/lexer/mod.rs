@@ -112,13 +112,13 @@ impl Lexer<'_> {
         self.add_token(TokenKind::Number)
     }
     fn keyword(&mut self) -> Result<Option<Token>> {
-        self.c.advance_while(|c| c.is_ascii_alphanumeric() || *c == '_');
+        self.c.advance_while(char::is_ascii_alphanumeric);
         let lexem = self.c.current_lexem();
         let token_type = match lexem {
             "true" => TokenKind::True,
             "false" => TokenKind::False,
             "null" => TokenKind::Null,
-            _ => return Ok(None),
+            _ => return Err(format!("Unknown keyword '{lexem}'").into())
         };
         self.add_token(token_type)
     }
@@ -128,3 +128,6 @@ impl Lexer<'_> {
         Err(msg.into())
     }
 }
+
+#[cfg(test)]
+mod test;
