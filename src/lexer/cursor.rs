@@ -33,19 +33,26 @@ impl<'a> Cursor<'a> {
     }
     pub fn current_lexem(&self) -> &str {
         let n = self.current - self.start;
-        let n = self.start_chars.clone().take(n).map(|(_,c)| c.len_utf8()).sum();
+        let n = self
+            .start_chars
+            .clone()
+            .take(n)
+            .map(|(_, c)| c.len_utf8())
+            .sum();
         &self.start_chars.as_str()[0..n]
     }
     pub fn get_span(&self) -> Span {
         let offset = self.start_chars.offset();
         Span {
             offset,
-            len: self.chars.offset() - offset
+            len: self.chars.offset() - offset,
         }
     }
-    pub fn file_pos(&self) -> FilePosition { self.file_pos }
+    pub fn file_pos(&self) -> FilePosition {
+        self.file_pos
+    }
     pub fn advance(&mut self) -> char {
-        let c = self.chars.next().map_or('\0', |(_,c)| c);
+        let c = self.chars.next().map_or('\0', |(_, c)| c);
         self.current += 1;
         self.file_pos.end_col += 1;
         if c == '\n' {
@@ -56,25 +63,23 @@ impl<'a> Cursor<'a> {
     }
     pub fn advance_while<F>(&mut self, f: F) -> bool
     where
-        F: Fn(&char) -> bool
+        F: Fn(&char) -> bool,
     {
         while f(&self.peek()) {
             self.advance();
-            if self.is_finished() { return false; }
+            if self.is_finished() {
+                return false;
+            }
         }
         true
     }
     pub fn peek(&self) -> char {
-        self.chars
-            .clone()
-            .next()
-            .map_or('\0', |(_,c)| c)
+        self.chars.clone().next().map_or('\0', |(_, c)| c)
     }
     pub fn peek_next(&self) -> char {
         let mut iter = self.chars.clone();
         iter.next();
-        iter.next()
-            .map_or('\0', |(_,c)| c)
+        iter.next().map_or('\0', |(_, c)| c)
     }
     pub fn match_next(&mut self, c: char) -> bool {
         if self.peek() == c {

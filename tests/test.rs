@@ -5,32 +5,26 @@ use json::{json, Json, JsonConfig};
 
 #[test]
 fn simple() {
-    assert!(matches!(
-            Json::deserialize("true"),
-            Ok(Json::True)
-    ));
-    assert!(matches!(
-            Json::deserialize("false"),
-            Ok(Json::False)
-    ));
-    assert!(matches!(
-            Json::deserialize("null"),
-            Ok(Json::Null)
-    ));
+    assert!(matches!(Json::deserialize("true"), Ok(Json::True)));
+    assert!(matches!(Json::deserialize("false"), Ok(Json::False)));
+    assert!(matches!(Json::deserialize("null"), Ok(Json::Null)));
     let string = "\"string\"".to_owned();
     match Json::deserialize(&string) {
-       Ok(Json::String(s)) => assert_eq!(s.deref(), "string"),
-       _ => panic!()
+        Ok(Json::String(s)) => assert_eq!(s.deref(), "string"),
+        _ => panic!(),
     }
 }
 
 #[test]
 fn nested() {
-    let j = Json::deserialize(r#"{
+    let j = Json::deserialize(
+        r#"{
         "array" : [1,2,3, {
             "nested_1" : 1
         }]
-    }"#).unwrap();
+    }"#,
+    )
+    .unwrap();
 
     let expected = json!(
         {
@@ -52,7 +46,7 @@ fn maximun_depth() {
         ..Default::default()
     };
 
-    for _ in 0..DEPTH-1 {
+    for _ in 0..DEPTH - 1 {
         s = format!("[{s}]");
     }
 
@@ -63,7 +57,7 @@ fn maximun_depth() {
     let j = Json::deserialize_with_config(&s, conf);
     match j {
         Ok(_) => panic!("Expected error"),
-        Err(err) => assert_eq!(err.get_message(), "Max depth reached")
+        Err(err) => assert_eq!(err.get_message(), "Max depth reached"),
     }
 }
 
@@ -83,7 +77,7 @@ fn index_obj() {
     assert_eq!(json["d"].expect_number(), 4.0);
     assert_eq!(json["e"].expect_number(), 5.0);
 
-    for e in ["a","b","c","d","e"] {
+    for e in ["a", "b", "c", "d", "e"] {
         json[e] += 1;
     }
 
@@ -106,9 +100,7 @@ fn index_obj_panic() {
 
 #[test]
 fn index_arr() {
-    let mut json = json!([
-        0,1,2,3,4,5
-    ]);
+    let mut json = json!([0, 1, 2, 3, 4, 5]);
 
     for i in 0..6 {
         assert_eq!(json[i].expect_number(), i as f64);
@@ -126,4 +118,3 @@ fn index_arr_panic() {
     });
     let _ = &json[12];
 }
-

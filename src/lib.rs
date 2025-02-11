@@ -20,31 +20,27 @@
 //! ```
 
 #![warn(clippy::pedantic)]
-#![allow(
-    clippy::missing_errors_doc,
-    clippy::must_use_candidate
-)]
-
+#![allow(clippy::missing_errors_doc, clippy::must_use_candidate)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[macro_use]
 extern crate alloc;
 
 mod prelude {
-    pub use alloc::string::ToString;
-    pub use core::fmt;
-    pub use alloc::vec::Vec;
     pub use alloc::borrow::Cow;
     pub use alloc::boxed::Box;
+    pub use alloc::string::ToString;
+    pub use alloc::vec::Vec;
+    pub use core::fmt;
 
     #[cfg(feature = "std")]
-    pub type Map<K,V> = std::collections::HashMap<K,V>;
+    pub type Map<K, V> = std::collections::HashMap<K, V>;
 
     #[cfg(not(feature = "std"))]
-    pub type Map<K,V> = alloc::collections::BTreeMap<K,V>;
+    pub type Map<K, V> = alloc::collections::BTreeMap<K, V>;
 }
 
-use core::ops::{Add, AddAssign, Index, IndexMut, Sub, SubAssign, Div, DivAssign, Mul, MulAssign};
+use core::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Sub, SubAssign};
 
 use prelude::*;
 
@@ -56,21 +52,23 @@ pub mod export;
 
 mod error;
 
-type Result<T> = core::result::Result<T,error::Error>;
+type Result<T> = core::result::Result<T, error::Error>;
 
 /// Represents a JSON object
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Json {
     Array(Box<[Json]>),
-    Object(Map<Box<str>,Json>),
+    Object(Map<Box<str>, Json>),
     String(Box<str>),
     Number(f64),
-    True, False, Null,
+    True,
+    False,
+    Null,
 }
 
 /// Configures the JSON parser
 #[repr(C)]
-#[derive(Clone,Copy)]
+#[derive(Clone, Copy)]
 pub struct JsonConfig {
     /// Max depth for nested objects
     pub max_depth: u32,
@@ -88,7 +86,9 @@ const DEFAULT_CONFIG: JsonConfig = JsonConfig {
 };
 
 impl Default for JsonConfig {
-    fn default() -> Self { DEFAULT_CONFIG }
+    fn default() -> Self {
+        DEFAULT_CONFIG
+    }
 }
 
 impl Json {
@@ -116,16 +116,16 @@ impl Json {
                 out.write_char('[')?;
                 for i in 0..elements.len() {
                     elements[i].serialize(out)?;
-                    if i < elements.len() -1 {
+                    if i < elements.len() - 1 {
                         out.write_char(',')?;
                     }
                 }
                 out.write_char(']')?;
-            },
+            }
             Json::Object(obj) => {
                 out.write_char('{')?;
                 let mut first = true;
-                for (k,v) in obj {
+                for (k, v) in obj {
                     if !first {
                         out.write_char(',')?;
                     }
@@ -134,12 +134,16 @@ impl Json {
                     v.serialize(out)?;
                 }
                 out.write_char('}')?;
-            },
-            Json::String(s) => { write!(out, "\"{s}\"")?; },
-            Json::Number(n) => { write!(out, "{n}")?; },
-            Json::True => { out.write_str("true")? },
-            Json::False => { out.write_str("false")? },
-            Json::Null => { out.write_str("null")? },
+            }
+            Json::String(s) => {
+                write!(out, "\"{s}\"")?;
+            }
+            Json::Number(n) => {
+                write!(out, "{n}")?;
+            }
+            Json::True => out.write_str("true")?,
+            Json::False => out.write_str("false")?,
+            Json::Null => out.write_str("null")?,
         }
         Ok(())
     }
@@ -176,7 +180,9 @@ impl Json {
     pub fn number(&self) -> Option<f64> {
         if let Json::Number(n) = self {
             Some(*n)
-        } else { None }
+        } else {
+            None
+        }
     }
     /// Expects the json object to be a [`Number`] variant
     ///
@@ -196,7 +202,9 @@ impl Json {
     pub fn number_mut(&mut self) -> Option<&mut f64> {
         if let Json::Number(n) = self {
             Some(n)
-        } else { None }
+        } else {
+            None
+        }
     }
     /// Expects the json object to be a [`Number`] variant
     /// and gets a mutable reference to the inner number.
@@ -218,7 +226,9 @@ impl Json {
     pub fn string(&self) -> Option<&str> {
         if let Json::String(s) = self {
             Some(s)
-        } else { None }
+        } else {
+            None
+        }
     }
     /// Expects the json object to be a [`String`] variant
     ///
@@ -238,7 +248,9 @@ impl Json {
     pub fn string_mut(&mut self) -> Option<&mut str> {
         if let Json::String(s) = self {
             Some(s)
-        } else { None }
+        } else {
+            None
+        }
     }
     /// Expects the json object to be a [`String`] variant
     /// and gets a reference to the inner string
@@ -255,10 +267,12 @@ impl Json {
     /// Attempts to get the inner Object of the json object, if
     /// it is an Object variant
     #[inline]
-    pub fn object(&self) -> Option<&Map<Box<str>,Json>> {
+    pub fn object(&self) -> Option<&Map<Box<str>, Json>> {
         if let Json::Object(o) = self {
             Some(o)
-        } else { None }
+        } else {
+            None
+        }
     }
     /// Expects the json object to be a [`Object`] variant
     /// and gets a reference to the inner object
@@ -268,7 +282,7 @@ impl Json {
     ///
     /// [`Object`]: Json::Object
     #[inline]
-    pub fn expect_object(&self) -> &Map<Box<str>,Json> {
+    pub fn expect_object(&self) -> &Map<Box<str>, Json> {
         self.object().unwrap()
     }
     /// Attempts to get a mutable reference to the inner [`Object`] of
@@ -276,10 +290,12 @@ impl Json {
     ///
     /// [`Object`]: Json::Object
     #[inline]
-    pub fn object_mut(&mut self) -> Option<&mut Map<Box<str>,Json>> {
+    pub fn object_mut(&mut self) -> Option<&mut Map<Box<str>, Json>> {
         if let Json::Object(o) = self {
             Some(o)
-        } else { None }
+        } else {
+            None
+        }
     }
     /// Expects the json object to be a [`Object`] variant
     /// and gets a mutable reference to the inner object
@@ -289,7 +305,7 @@ impl Json {
     ///
     /// [`Object`]: Json::Object
     #[inline]
-    pub fn expect_object_mut(&mut self) -> &mut Map<Box<str>,Json> {
+    pub fn expect_object_mut(&mut self) -> &mut Map<Box<str>, Json> {
         self.object_mut().unwrap()
     }
 
@@ -299,7 +315,9 @@ impl Json {
     pub fn array(&self) -> Option<&[Json]> {
         if let Json::Array(o) = self {
             Some(o)
-        } else { None }
+        } else {
+            None
+        }
     }
     /// Expects the json object to be a [`Array`] variant
     ///
@@ -317,7 +335,9 @@ impl Json {
     pub fn array_mut(&mut self) -> Option<&mut [Json]> {
         if let Json::Array(o) = self {
             Some(o)
-        } else { None }
+        } else {
+            None
+        }
     }
     /// Expects the json object to be a [`Array`] variant
     ///
@@ -338,7 +358,9 @@ impl Json {
             Some(true)
         } else if let Json::False = self {
             Some(false)
-        } else { None }
+        } else {
+            None
+        }
     }
     /// Expects the json object to be a [`True`] or [`False`] variant
     ///
@@ -355,7 +377,7 @@ impl Json {
     /// Returns true if the json is a Nil variant
     #[inline]
     pub fn is_null(&self) -> bool {
-        matches!(self,Json::Null)
+        matches!(self, Json::Null)
     }
 }
 
@@ -433,7 +455,7 @@ macro_rules! from_num {
     };
 }
 
-from_num!(f64,f32,i32,i16,u16,u8);
+from_num!(f64, f32, i32, i16, u16, u8);
 
 impl From<String> for Json {
     fn from(value: String) -> Self {
@@ -459,15 +481,19 @@ impl From<Vec<Json>> for Json {
     }
 }
 
-impl From<Map<Box<str>,Json>> for Json {
-    fn from(value: Map<Box<str>,Json>) -> Self {
+impl From<Map<Box<str>, Json>> for Json {
+    fn from(value: Map<Box<str>, Json>) -> Self {
         Self::Object(value)
     }
 }
 
 impl From<bool> for Json {
     fn from(value: bool) -> Self {
-        if value { Json::True } else { Json::False }
+        if value {
+            Json::True
+        } else {
+            Json::False
+        }
     }
 }
 
