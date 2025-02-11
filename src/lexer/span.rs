@@ -3,7 +3,7 @@
 use std::{fmt, str};
 
 /// Represents a span in a buffer, bounded by an offset and a len
-#[derive(Clone,Copy,Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Span {
     /// Offset of the span inside the buffer
     pub offset: usize,
@@ -13,7 +13,7 @@ pub struct Span {
 
 /// Represents a [`Span`] in a file, bounded by
 /// it's start line and col, plus it's end line and col
-#[derive(Debug,Clone,Copy,Default)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct FilePosition {
     pub start_line: usize,
     pub start_col: usize,
@@ -23,7 +23,12 @@ pub struct FilePosition {
 
 impl fmt::Display for FilePosition {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let FilePosition { start_line, start_col, end_line, end_col } = self;
+        let FilePosition {
+            start_line,
+            start_col,
+            end_line,
+            end_col,
+        } = self;
         write!(f, "[{start_line}:{start_col},{end_line}:{end_col}]")
     }
 }
