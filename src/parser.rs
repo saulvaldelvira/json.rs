@@ -23,7 +23,7 @@ impl Parser<'_> {
     fn is_finished(&self) -> bool {
         self.curr >= self.tokens.len()
     }
-    fn error<T>(&mut self, msg: impl Into<Cow<'static,str>>) -> Result<T> {
+    fn error<T>(&mut self, msg: impl Into<Cow<'static, str>>) -> Result<T> {
         let fpos = self.previous()?.span().file_position(self.src);
         let mut error = Error::new(msg);
         error.set_file_pos(fpos);
@@ -31,46 +31,46 @@ impl Parser<'_> {
     }
     fn value(&mut self) -> Result<Json> {
         if self.depth > self.conf.max_depth {
-            return self.error("Max depth reached")
+            return self.error("Max depth reached");
         }
         macro_rules! enter {
-            ($c:expr) => {
-                {
-                    self.depth += 1;
-                    let j = $c;
-                    self.depth -= 1;
-                    j
-                }
-            };
+            ($c:expr) => {{
+                self.depth += 1;
+                let j = $c;
+                self.depth -= 1;
+                j
+            }};
         }
         if self.match_type(TokenKind::LSquareBracket) {
-            enter!( self.array() )
+            enter!(self.array())
         } else if self.match_type(TokenKind::LeftBrace) {
-            enter!( self.object() )
+            enter!(self.object())
         } else if self.match_type(TokenKind::Number) {
             self.number()
         } else if self.match_type(TokenKind::String) {
             self.string()
         } else if self.match_type(TokenKind::True) {
-            Ok( Json::True )
+            Ok(Json::True)
         } else if self.match_type(TokenKind::False) {
-            Ok( Json::False )
+            Ok(Json::False)
         } else if self.match_type(TokenKind::Null) {
-            Ok( Json::Null )
+            Ok(Json::Null)
         } else {
-           self.error("Unknown token")
+            self.error("Unknown token")
         }
     }
     fn array(&mut self) -> Result<Json> {
         let mut elems = Vec::new();
         while !self.check(TokenKind::RSquareBracket) {
-            if self.is_finished() { break }
+            if self.is_finished() {
+                break;
+            }
             if !elems.is_empty() {
                 self.consume(TokenKind::Comma, "Expected comma after element")?;
             }
             if self.peek()?.get_type() == TokenKind::RSquareBracket {
                 if self.conf.recover_from_errors {
-                    continue
+                    continue;
                 }
                 return self.error("Trailing comma on list");
             }
@@ -78,24 +78,26 @@ impl Parser<'_> {
             elems.push(json);
         }
         self.consume(TokenKind::RSquareBracket, "Unclosed '['")?;
-        Ok( elems.into() )
+        Ok(elems.into())
     }
     fn object(&mut self) -> Result<Json> {
         let mut elems = Map::new();
         while !self.check(TokenKind::RightBrace) {
-            if self.is_finished() { break }
+            if self.is_finished() {
+                break;
+            }
             if !elems.is_empty() {
                 self.consume(TokenKind::Comma, "Expected comma after element")?;
             }
 
-            if ! self.check(TokenKind::String) {
+            if !self.check(TokenKind::String) {
                 let msg = match self.previous().unwrap().get_type() {
                     TokenKind::Comma => {
                         if self.conf.recover_from_errors {
-                            continue
+                            continue;
                         }
                         "Trailing comma in object"
-                    },
+                    }
                     _ => "Expected STRING",
                 };
                 return self.error(msg);
@@ -105,10 +107,10 @@ impl Parser<'_> {
 
             self.consume(TokenKind::Colon, "Expected ':'")?;
             let json = self.value()?;
-            elems.insert(key,json);
+            elems.insert(key, json);
         }
         self.consume(TokenKind::RightBrace, "Unclosed '{'")?;
-        Ok( Json::Object(elems) )
+        Ok(Json::Object(elems))
     }
     fn owned_lexem_strip(&self, span: Span) -> Box<str> {
         let slice = span.slice(self.src);
@@ -118,15 +120,17 @@ impl Parser<'_> {
     }
     fn number(&mut self) -> Result<Json> {
         let n: f64 = self.previous()?.span().slice(self.src).parse()?;
-        Ok( Json::Number(n) )
+        Ok(Json::Number(n))
     }
     fn string(&mut self) -> Result<Json> {
         let s = self.previous()?.span();
         let s = self.owned_lexem_strip(s);
-        Ok( Json::String(s) )
+        Ok(Json::String(s))
     }
     fn consume(&mut self, t: TokenKind, msg: &'static str) -> Result<&Token> {
-        if self.check(t) { return self.advance(); }
+        if self.check(t) {
+            return self.advance();
+        }
         self.error(msg)
     }
     fn match_type(&mut self, t: TokenKind) -> bool {
@@ -137,7 +141,9 @@ impl Parser<'_> {
         false
     }
     fn check(&mut self, t: TokenKind) -> bool {
-        if self.is_finished() { return false; }
+        if self.is_finished() {
+            return false;
+        }
         self.peek().unwrap().get_type() == t
     }
     fn advance(&mut self) -> Result<&Token> {
@@ -147,12 +153,14 @@ impl Parser<'_> {
         self.previous()
     }
     fn peek(&mut self) -> Result<&Token> {
-        self.tokens.get(self.curr)
-                   .ok_or_else(|| "Index should be valid when calling peek".into())
+        self.tokens
+            .get(self.curr)
+            .ok_or_else(|| "Index should be valid when calling peek".into())
     }
     fn previous(&mut self) -> Result<&Token> {
-        self.tokens.get(self.curr - 1)
-                   .ok_or_else(|| "Index should be valid when calling peek".into())
+        self.tokens
+            .get(self.curr - 1)
+            .ok_or_else(|| "Index should be valid when calling peek".into())
     }
 }
 
@@ -163,5 +171,6 @@ pub fn parse(src: &str, tokens: &[Token], conf: JsonConfig) -> Result<Json> {
         curr: 0,
         depth: 0,
         conf,
-    }.parse()
+    }
+    .parse()
 }
