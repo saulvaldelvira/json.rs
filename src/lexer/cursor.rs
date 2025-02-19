@@ -32,14 +32,8 @@ impl<'a> Cursor<'a> {
         self.chars.as_str().is_empty()
     }
     pub fn current_lexem(&self) -> &str {
-        let n = self.current - self.start;
-        let n = self
-            .start_chars
-            .clone()
-            .take(n)
-            .map(|(_, c)| c.len_utf8())
-            .sum();
-        &self.start_chars.as_str()[0..n]
+        let n = self.chars.offset() - self.start_chars.offset();
+        &self.start_chars.as_str()[..n]
     }
     pub fn get_span(&self) -> Span {
         let offset = self.start_chars.offset();
