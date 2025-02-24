@@ -29,7 +29,7 @@ extern crate alloc;
 mod prelude {
     pub use alloc::borrow::Cow;
     pub use alloc::boxed::Box;
-    pub use alloc::string::ToString;
+    pub use alloc::string::{String, ToString};
     pub use alloc::vec::Vec;
     pub use core::fmt;
 

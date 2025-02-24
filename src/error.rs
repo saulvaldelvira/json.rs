@@ -2,7 +2,7 @@ use core::num::ParseFloatError;
 use core::{error, fmt};
 
 use crate::lexer::span::FilePosition;
-use crate::prelude::Cow;
+use crate::prelude::{Cow, String, ToString};
 
 #[derive(Debug)]
 pub struct Error {

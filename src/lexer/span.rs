@@ -1,6 +1,6 @@
 //! Utilities to represent spans inside a file
 
-use std::{fmt, str};
+use core::{fmt, str};
 
 /// Represents a span in a buffer, bounded by an offset and a len
 #[derive(Clone, Copy, Debug)]

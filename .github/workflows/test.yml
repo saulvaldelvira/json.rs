@@ -27,6 +27,9 @@ jobs:
         with:
           command: check
 
+      - name: Test nostd
+        run: bash tests/test-nostd.sh
+
   test:
     name: Test Suite
     strategy:

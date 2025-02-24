@@ -1,6 +1,7 @@
 //! C bindings for the json crate
 
-use std::{
+use crate::prelude::{Box, String, Vec};
+use core::{
     ffi::{c_char, CStr},
     mem, ptr, slice,
 };
