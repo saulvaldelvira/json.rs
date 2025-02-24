@@ -1,4 +1,13 @@
-#include "../target/include/bindings.h"
+/*
+ * Jsonrs C bindings example.
+ *
+ * Compile with:
+ *  $ gcc -ljson -L ../target/debug c-bindings.c -o c-bindings
+ *
+ * Run with:
+ *  $ LD_LIBRARY_PATH=../target/debug ./c-bindings
+ */
+#include "../target/include/json.h"
 #include <assert.h>
 #include <stdio.h>
 

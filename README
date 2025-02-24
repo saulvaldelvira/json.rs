@@ -1,7 +1,7 @@
 Json parser
 ===========
 
-This is a rust library to work with json objects.
+This is a rust library to work with json.
 
 == Documentation ==
 To read the library documentation run `cargo doc`
