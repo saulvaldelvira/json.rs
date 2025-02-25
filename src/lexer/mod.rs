@@ -61,15 +61,12 @@ impl Lexer<'_> {
             '"' => self.string(),
             ' ' | '\n' | '\r' | '\t' => Ok(None), // Ignore whitespace.
             c => {
-                if c.is_ascii_digit() {
+                if c.is_numeric() {
                     self.number()
-                } else if c.is_ascii_alphabetic() {
+                } else if c.is_alphabetic() {
                     self.keyword()
                 } else {
-                    let mut msg = "Unexpected character [".to_string();
-                    msg += &c.to_string();
-                    msg += "]";
-                    self.error(&msg)?;
+                    self.error(&format!("Unexpected character [{c}]"))?;
                     Ok(None)
                 }
             }
@@ -108,15 +105,15 @@ impl Lexer<'_> {
         self.add_token(TokenKind::String)
     }
     fn number(&mut self) -> Result<Option<Token>> {
-        self.c.advance_while(char::is_ascii_digit);
-        if self.c.peek() == '.' && self.c.peek_next().is_ascii_digit() {
+        self.c.advance_while(|c| c.is_numeric());
+        if self.c.peek() == '.' && self.c.peek_next().is_numeric() {
             self.c.advance();
-            self.c.advance_while(char::is_ascii_digit);
+            self.c.advance_while(|c| c.is_numeric());
         }
         self.add_token(TokenKind::Number)
     }
     fn keyword(&mut self) -> Result<Option<Token>> {
-        self.c.advance_while(char::is_ascii_alphanumeric);
+        self.c.advance_while(|c| c.is_alphanumeric());
         let lexem = self.c.current_lexem();
         let token_type = match lexem {
             "true" => TokenKind::True,
