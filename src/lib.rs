@@ -489,11 +489,7 @@ impl From<Map<Box<str>, Json>> for Json {
 
 impl From<bool> for Json {
     fn from(value: bool) -> Self {
-        if value {
-            Json::True
-        } else {
-            Json::False
-        }
+        if value { Json::True } else { Json::False }
     }
 }
 

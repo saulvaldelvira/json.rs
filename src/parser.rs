@@ -2,11 +2,11 @@ use crate::error::Error;
 use crate::lexer::Span;
 use crate::prelude::*;
 
-use crate::lexer::token::Token;
-use crate::lexer::token::TokenKind;
 use crate::Json;
 use crate::JsonConfig;
 use crate::Result;
+use crate::lexer::token::Token;
+use crate::lexer::token::TokenKind;
 
 struct Parser<'a> {
     tokens: &'a [Token],

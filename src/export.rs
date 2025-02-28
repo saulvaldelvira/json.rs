@@ -2,7 +2,7 @@
 
 use crate::prelude::{Box, String, Vec};
 use core::{
-    ffi::{c_char, CStr},
+    ffi::{CStr, c_char},
     mem, ptr, slice,
 };
 
@@ -100,7 +100,7 @@ impl Json {
 ///
 /// # Safety
 /// The pointer must be a valid NULL terminated C string
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn json_deserialize(ptr: *const c_char) -> Json {
     let cstr = unsafe { CStr::from_ptr(ptr) };
     if let Ok(s) = cstr.to_str() {
@@ -122,7 +122,7 @@ pub unsafe extern "C" fn json_deserialize(ptr: *const c_char) -> Json {
 ///
 /// # Safety
 /// The pointer must be a valid NULL terminated C string
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn json_deserialize_with_config(
     ptr: *const c_char,
     conf: crate::JsonConfig,
@@ -152,7 +152,7 @@ fn vec_2_ptr<T>(vec: Vec<T>) -> *mut T {
 }
 
 /// Frees the given Json structure.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn json_free(json: Json) {
     match json {
         Json::Array { elems, len } => {

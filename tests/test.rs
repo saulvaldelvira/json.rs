@@ -1,7 +1,7 @@
 use core::panic;
 use std::ops::Deref;
 
-use json::{json, Json, JsonConfig};
+use json::{Json, JsonConfig, json};
 
 #[test]
 fn simple() {
