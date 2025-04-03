@@ -554,7 +554,10 @@ macro_rules! json {
     ( $lit:literal ) => {
         $crate::Json::from( $lit )
     };
-    ( [ $( $e:tt ),* ] ) => {
+    ( { $e:expr } ) => {
+        $crate::Json::from( $e )
+    };
+    ( [ $( $e:tt ),* $(,)? ] ) => {
         $crate::Json::from(
             vec![
                 $(
@@ -563,7 +566,7 @@ macro_rules! json {
             ]
         )
     };
-    ( { $( $key:literal : $val:tt ),*  } ) => {
+    ( { $( $key:literal : $val:tt ),* $(,)? } ) => {
         {
             let mut map = $crate::Map::new();
             $( map.insert($key .into(), json!($val) );  )*

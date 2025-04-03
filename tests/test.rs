@@ -118,3 +118,26 @@ fn index_arr_panic() {
     });
     let _ = &json[12];
 }
+
+#[test]
+fn macro_test() {
+    fn foo() -> u16 { 12 }
+
+    let a = 1.0;
+    let json = json!{{
+        "a + 2" : { a + 2.0 },
+        "foo()" : { foo() },
+        "nest" : [
+            { (1 + 1) * 0 },
+            { 2 },
+        ]
+    }};
+
+    let obj = json.expect_object();
+    assert_eq!(obj["a + 2"].expect_number(), a + 2.0);
+    assert_eq!(obj["foo()"].expect_number(), foo() as f64);
+
+    let nest = &obj["nest"];
+    assert_eq!(nest[0].expect_number(), 0.0);
+    assert_eq!(nest[1].expect_number(), 2.0);
+}
