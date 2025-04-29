@@ -177,7 +177,7 @@ impl Json {
     ///
     /// [`Number`]: Json::Number
     #[inline]
-    pub fn number(&self) -> Option<f64> {
+    pub const fn number(&self) -> Option<f64> {
         if let Json::Number(n) = self {
             Some(*n)
         } else {
@@ -191,7 +191,7 @@ impl Json {
     ///
     /// [`Number`]: Json::Number
     #[inline]
-    pub fn expect_number(&self) -> f64 {
+    pub const fn expect_number(&self) -> f64 {
         self.number().unwrap()
     }
     /// Attempts to get a mutable reference to the inner [`Number`]
@@ -199,7 +199,7 @@ impl Json {
     ///
     /// [`Number`]: Json::Number
     #[inline]
-    pub fn number_mut(&mut self) -> Option<&mut f64> {
+    pub const fn number_mut(&mut self) -> Option<&mut f64> {
         if let Json::Number(n) = self {
             Some(n)
         } else {
@@ -214,7 +214,7 @@ impl Json {
     ///
     /// [`Number`]: Json::Number
     #[inline]
-    pub fn expect_number_mut(&mut self) -> &mut f64 {
+    pub const fn expect_number_mut(&mut self) -> &mut f64 {
         self.number_mut().unwrap()
     }
 
@@ -223,7 +223,7 @@ impl Json {
     ///
     /// [`String`]: Json::String
     #[inline]
-    pub fn string(&self) -> Option<&str> {
+    pub const fn string(&self) -> Option<&str> {
         if let Json::String(s) = self {
             Some(s)
         } else {
@@ -237,7 +237,7 @@ impl Json {
     ///
     /// [`String`]: Json::String
     #[inline]
-    pub fn expect_string(&self) -> &str {
+    pub const fn expect_string(&self) -> &str {
         self.string().unwrap()
     }
     /// Attempts to get a mutable reference to the inner
@@ -245,7 +245,7 @@ impl Json {
     ///
     /// [`String`]: Json::String
     #[inline]
-    pub fn string_mut(&mut self) -> Option<&mut str> {
+    pub const fn string_mut(&mut self) -> Option<&mut str> {
         if let Json::String(s) = self {
             Some(s)
         } else {
@@ -260,14 +260,14 @@ impl Json {
     ///
     /// [`String`]: Json::String
     #[inline]
-    pub fn expect_string_mut(&mut self) -> &mut str {
+    pub const fn expect_string_mut(&mut self) -> &mut str {
         self.string_mut().unwrap()
     }
 
     /// Attempts to get the inner Object of the json object, if
     /// it is an Object variant
     #[inline]
-    pub fn object(&self) -> Option<&Map<Box<str>, Json>> {
+    pub const fn object(&self) -> Option<&Map<Box<str>, Json>> {
         if let Json::Object(o) = self {
             Some(o)
         } else {
@@ -282,7 +282,7 @@ impl Json {
     ///
     /// [`Object`]: Json::Object
     #[inline]
-    pub fn expect_object(&self) -> &Map<Box<str>, Json> {
+    pub const fn expect_object(&self) -> &Map<Box<str>, Json> {
         self.object().unwrap()
     }
     /// Attempts to get a mutable reference to the inner [`Object`] of
@@ -290,7 +290,7 @@ impl Json {
     ///
     /// [`Object`]: Json::Object
     #[inline]
-    pub fn object_mut(&mut self) -> Option<&mut Map<Box<str>, Json>> {
+    pub const fn object_mut(&mut self) -> Option<&mut Map<Box<str>, Json>> {
         if let Json::Object(o) = self {
             Some(o)
         } else {
@@ -305,14 +305,14 @@ impl Json {
     ///
     /// [`Object`]: Json::Object
     #[inline]
-    pub fn expect_object_mut(&mut self) -> &mut Map<Box<str>, Json> {
+    pub const fn expect_object_mut(&mut self) -> &mut Map<Box<str>, Json> {
         self.object_mut().unwrap()
     }
 
     /// Attempts to get the inner Array of the json object, if
     /// it is an Array variant
     #[inline]
-    pub fn array(&self) -> Option<&[Json]> {
+    pub const fn array(&self) -> Option<&[Json]> {
         if let Json::Array(o) = self {
             Some(o)
         } else {
@@ -326,13 +326,13 @@ impl Json {
     ///
     /// [`Array`]: Json::Array
     #[inline]
-    pub fn expect_array(&self) -> &[Json] {
+    pub const fn expect_array(&self) -> &[Json] {
         self.array().unwrap()
     }
     /// Attempts to get the inner Array of the json object, if
     /// it is an Array variant
     #[inline]
-    pub fn array_mut(&mut self) -> Option<&mut [Json]> {
+    pub const fn array_mut(&mut self) -> Option<&mut [Json]> {
         if let Json::Array(o) = self {
             Some(o)
         } else {
@@ -346,14 +346,14 @@ impl Json {
     ///
     /// [`Array`]: Json::Array
     #[inline]
-    pub fn expect_array_mut(&mut self) -> &mut [Json] {
+    pub const fn expect_array_mut(&mut self) -> &mut [Json] {
         self.array_mut().unwrap()
     }
 
     /// Attempts to get the inner boolean value of the json object, if
     /// it is a True or False variant
     #[inline]
-    pub fn boolean(&self) -> Option<bool> {
+    pub const fn boolean(&self) -> Option<bool> {
         if let Json::True = self {
             Some(true)
         } else if let Json::False = self {
@@ -370,13 +370,13 @@ impl Json {
     /// [`True`]: Json::True
     /// [`False`]: Json::False
     #[inline]
-    pub fn expect_boolean(&self) -> bool {
+    pub const fn expect_boolean(&self) -> bool {
         self.boolean().unwrap()
     }
 
     /// Returns true if the json is a Nil variant
     #[inline]
-    pub fn is_null(&self) -> bool {
+    pub const fn is_null(&self) -> bool {
         matches!(self, Json::Null)
     }
 }

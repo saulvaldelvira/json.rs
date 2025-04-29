@@ -121,10 +121,12 @@ fn index_arr_panic() {
 
 #[test]
 fn macro_test() {
-    fn foo() -> u16 { 12 }
+    fn foo() -> u16 {
+        12
+    }
 
     let a = 1.0;
-    let json = json!{{
+    let json = json! {{
         "a + 2" : { a + 2.0 },
         "foo()" : { foo() },
         "nest" : [
