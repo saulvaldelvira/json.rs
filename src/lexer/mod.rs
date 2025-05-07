@@ -5,7 +5,7 @@ use cursor::Cursor;
 use span::FilePosition;
 pub use span::Span;
 
-use crate::prelude::*;
+use crate::{JsonConfig, prelude::*};
 
 use crate::Result;
 
@@ -14,11 +14,13 @@ use token::{Token, TokenKind};
 
 struct Lexer<'a> {
     c: Cursor<'a>,
+    conf: JsonConfig,
 }
 
-pub fn tokenize(text: &str) -> Result<Box<[Token]>> {
+pub fn tokenize(text: &str, conf: JsonConfig) -> Result<Box<[Token]>> {
     Lexer {
         c: Cursor::new(text),
+        conf,
     }
     .tokenize()
 }
@@ -39,7 +41,8 @@ impl Lexer<'_> {
         Ok(Some(Token::new(token_type, self.c.get_span())))
     }
     fn scan_token(&mut self) -> Result<Option<Token>> {
-        match self.c.advance() {
+        let c = self.c.advance();
+        match c {
             '{' => self.add_token(TokenKind::LeftBrace),
             '}' => self.add_token(TokenKind::RightBrace),
             '[' => self.add_token(TokenKind::LSquareBracket),
@@ -50,12 +53,16 @@ impl Lexer<'_> {
             '+' => self.add_token(TokenKind::Plus),
             ':' => self.add_token(TokenKind::Colon),
             '/' => {
-                if self.c.match_next('/') {
-                    self.comment()
-                } else if self.c.match_next('*') {
-                    self.ml_comment()
+                if self.conf.allow_comments {
+                    if self.c.match_next('/') {
+                        self.comment()
+                    } else if self.c.match_next('*') {
+                        self.ml_comment()
+                    } else {
+                        self.error(&format!("Unexpected character '{c}'"))
+                    }
                 } else {
-                    Err("Unexpected character".into())
+                    self.error("Comments are not supported")
                 }
             }
             '"' => self.string(),
@@ -66,7 +73,7 @@ impl Lexer<'_> {
                 } else if c.is_alphabetic() {
                     self.keyword()
                 } else {
-                    self.error(&format!("Unexpected character [{c}]"))?;
+                    self.error(&format!("Unexpected character '{c}'"))?;
                     Ok(None)
                 }
             }

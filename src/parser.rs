@@ -69,7 +69,7 @@ impl Parser<'_> {
                 self.consume(TokenKind::Comma, "Expected comma after element")?;
             }
             if self.peek()?.get_type() == TokenKind::RSquareBracket {
-                if self.conf.recover_from_errors {
+                if self.conf.allow_trailing_commas {
                     continue;
                 }
                 return self.error("Trailing comma on list");
@@ -93,7 +93,7 @@ impl Parser<'_> {
             if !self.check(TokenKind::String) {
                 let msg = match self.previous().unwrap().get_type() {
                     TokenKind::Comma => {
-                        if self.conf.recover_from_errors {
+                        if self.conf.allow_trailing_commas {
                             continue;
                         }
                         "Trailing comma in object"

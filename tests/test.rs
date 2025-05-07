@@ -130,7 +130,7 @@ fn macro_test() {
         "a + 2" : { a + 2.0 },
         "foo()" : { foo() },
         "nest" : [
-            { (1 + 1) * 0 },
+            { (1 + 1) * 2 },
             { 2 },
         ]
     }};
@@ -140,6 +140,6 @@ fn macro_test() {
     assert_eq!(obj["foo()"].expect_number(), foo() as f64);
 
     let nest = &obj["nest"];
-    assert_eq!(nest[0].expect_number(), 0.0);
+    assert_eq!(nest[0].expect_number(), 4.0);
     assert_eq!(nest[1].expect_number(), 2.0);
 }

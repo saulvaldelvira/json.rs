@@ -72,17 +72,19 @@ pub enum Json {
 pub struct JsonConfig {
     /// Max depth for nested objects
     pub max_depth: u32,
-    /// Recover from errors.
-    /// For example, trailing commas on objects
-    /// are not allowed, but this flag makes
-    /// the parser skip them.
-    pub recover_from_errors: bool,
+
+    /// Allow trailing commas on objects and arrays
+    pub allow_trailing_commas: bool,
+
+    /// Allow comments withing the Json
+    pub allow_comments: bool,
 }
 
 /// Default config used by [`Json::deserialize`]
 const DEFAULT_CONFIG: JsonConfig = JsonConfig {
     max_depth: u32::MAX,
-    recover_from_errors: false,
+    allow_trailing_commas: false,
+    allow_comments: false,
 };
 
 impl Default for JsonConfig {
@@ -106,7 +108,7 @@ impl Json {
     /// using the given [`JsonConfig`]
     pub fn deserialize_with_config(text: impl AsRef<str>, conf: JsonConfig) -> Result<Json> {
         let text = text.as_ref();
-        let tokens = lexer::tokenize(text)?;
+        let tokens = lexer::tokenize(text, conf)?;
         parser::parse(text, &tokens, conf)
     }
     /// Serializes the JSON object into a [`fmt::Write`]
