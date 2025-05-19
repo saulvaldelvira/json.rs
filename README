@@ -6,3 +6,10 @@ This is a rust library to work with json.
 == Documentation ==
 To read the library documentation run `cargo doc`
 or browse the online docs at https://docs.rs/jsonrs
+
+====
+Copyright (C) 2025 Saúl Valdelvira
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, version 3.
