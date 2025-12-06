@@ -45,8 +45,14 @@ impl Parser<'_> {
             enter!(self.array())
         } else if self.match_type(TokenKind::LeftBrace) {
             enter!(self.object())
+        } else if self.match_type(TokenKind::Minus) {
+            self.consume(TokenKind::Number, "Expected number after '-'")?;
+            self.number(true)
+        } else if self.match_type(TokenKind::Plus) {
+            self.consume(TokenKind::Number, "Expected number after '+'")?;
+            self.number(false)
         } else if self.match_type(TokenKind::Number) {
-            self.number()
+            self.number(false)
         } else if self.match_type(TokenKind::String) {
             self.string()
         } else if self.match_type(TokenKind::True) {
@@ -118,8 +124,11 @@ impl Parser<'_> {
         let slice = slice.strip_suffix("\"").unwrap_or(slice);
         Box::from(slice)
     }
-    fn number(&mut self) -> Result<Json> {
-        let n: f64 = self.previous()?.span().slice(self.src).parse()?;
+    fn number(&mut self, minus: bool) -> Result<Json> {
+        let mut n: f64 = self.previous()?.span().slice(self.src).parse()?;
+        if minus {
+            n *= -1.0;
+        }
         Ok(Json::Number(n))
     }
     fn string(&mut self) -> Result<Json> {

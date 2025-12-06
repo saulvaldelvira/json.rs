@@ -19,8 +19,8 @@ fn simple() {
 fn nested() {
     let j = Json::deserialize(
         r#"{
-        "array" : [1,2,3, {
-            "nested_1" : 1
+        "array" : [1,2,+3, {
+            "nested_1" : -1
         }]
     }"#,
     )
@@ -29,7 +29,7 @@ fn nested() {
     let expected = json!(
         {
             "array" : [1,2,3, {
-                "nested_1" : 1
+                "nested_1" : {-1}
             }]
         }
     );
