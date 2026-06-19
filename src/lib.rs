@@ -152,7 +152,15 @@ impl Json {
                 out.write_char('}')?;
             }
             Json::String(s) => {
-                write!(out, "\"{s}\"")?;
+                write!(out, "\"")?;
+                for c in s.chars() {
+                    match c {
+                        '\\' => write!(out, "\\\\"),
+                        '"' => write!(out, "\\\""),
+                        c => write!(out, "{c}"),
+                    }?;
+                }
+                write!(out, "\"")?;
             }
             Json::Number(n) => {
                 write!(out, "{n}")?;

@@ -143,3 +143,12 @@ fn macro_test() {
     assert_eq!(nest[0].expect_number(), 4.0);
     assert_eq!(nest[1].expect_number(), 2.0);
 }
+
+#[test]
+fn complex_strings() {
+    let src = "\\hi \n im a \"string\"";
+    let serialized = json!({src}).to_string();
+    assert_eq!(serialized, "\"\\\\hi \n im a \\\"string\\\"\"");
+    let deserialized = Json::deserialize(serialized).unwrap();
+    assert_eq!(deserialized.expect_string(), src);
+}

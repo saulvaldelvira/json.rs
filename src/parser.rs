@@ -109,7 +109,7 @@ impl Parser<'_> {
                 return self.error(msg);
             }
             let span = self.advance()?.span();
-            let key = self.owned_lexem_strip(span);
+            let key = self.owned_lexem_strip(span)?;
 
             self.consume(TokenKind::Colon, "Expected ':'")?;
             let json = self.value()?;
@@ -118,11 +118,33 @@ impl Parser<'_> {
         self.consume(TokenKind::RightBrace, "Unclosed '{'")?;
         Ok(Json::Object(elems))
     }
-    fn owned_lexem_strip(&self, span: Span) -> Box<str> {
+    fn owned_lexem_strip(&self, span: Span) -> Result<Box<str>> {
         let slice = span.slice(self.src);
         let slice = slice.strip_prefix("\"").unwrap_or(slice);
         let slice = slice.strip_suffix("\"").unwrap_or(slice);
-        Box::from(slice)
+        let mut chars = slice.chars();
+        let mut res = String::new();
+        while let Some(c) = chars.next() {
+            let c = match c {
+                '\\' => {
+                    let Some(next) = chars.next() else {
+                        return Err("Unfinished escape sequence".into());
+                    };
+                    match next {
+                        '\\' => '\\',
+                        '"' => '"',
+                        'n' => '\n',
+                        'r' => '\r',
+                        't' => '\t',
+                        '0' => '\0',
+                        _ => return Err(format!("Unknown escape \"{next}").into())
+                    }
+                },
+                c => c
+            };
+            res.push(c);
+        }
+        Ok(res.into_boxed_str())
     }
     fn number(&mut self, minus: bool) -> Result<Json> {
         let mut n: f64 = self.previous()?.span().slice(self.src).parse()?;
@@ -133,7 +155,7 @@ impl Parser<'_> {
     }
     fn string(&mut self) -> Result<Json> {
         let s = self.previous()?.span();
-        let s = self.owned_lexem_strip(s);
+        let s = self.owned_lexem_strip(s)?;
         Ok(Json::String(s))
     }
     fn consume(&mut self, t: TokenKind, msg: &'static str) -> Result<&Token> {
