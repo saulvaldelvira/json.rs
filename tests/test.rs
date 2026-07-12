@@ -1,4 +1,5 @@
 use core::panic;
+use std::io::Write;
 use std::ops::Deref;
 
 use json::{Json, JsonConfig, json};
@@ -147,8 +148,16 @@ fn macro_test() {
 #[test]
 fn complex_strings() {
     let src = "\\hi \n im a \"string\"";
-    let serialized = json!({src}).to_string();
+    let serialized = json!({ src }).to_string();
     assert_eq!(serialized, "\"\\\\hi \n im a \\\"string\\\"\"");
     let deserialized = Json::deserialize(serialized).unwrap();
     assert_eq!(deserialized.expect_string(), src);
+}
+
+#[test]
+fn serialize_vec() {
+    let mut vec = Vec::new();
+    let json = json!([1, 2, 3, 4]);
+    write!(vec, "{json}").unwrap();
+    assert_eq!(vec, b"[1,2,3,4]");
 }

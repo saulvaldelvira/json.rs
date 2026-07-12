@@ -126,6 +126,19 @@ impl Json {
         parser::parse(text, &tokens, conf)
     }
     /// Serializes the JSON object into a [`fmt::Write`]
+    ///
+    /// # Example
+    /// ```
+    /// use json::json;
+    ///
+    /// let json = json!({
+    ///     "hello": [ "w", "o", 114, ["l", "d"]],
+    /// });
+    ///
+    /// let mut s = String::new();
+    /// json.serialize(&mut s).unwrap();
+    /// assert_eq!(s, r#"{"hello":["w","o",114,["l","d"]]}"#);
+    /// ```
     pub fn serialize(&self, out: &mut dyn fmt::Write) -> fmt::Result {
         match self {
             Json::Array(elements) => {
