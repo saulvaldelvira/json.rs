@@ -492,7 +492,8 @@ macro_rules! from_num {
     };
 }
 
-from_num!(f64, f32, i32, i16, u16, u8);
+// TODO: Maybe remove the arithmetic impls?
+from_num!(f64, f32, i8, i16, i32, u8, u16, u32);
 
 impl From<String> for Json {
     fn from(value: String) -> Self {
