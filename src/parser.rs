@@ -189,9 +189,9 @@ impl Parser<'_> {
             .ok_or_else(|| "Index should be valid when calling peek".into())
     }
     fn previous(&mut self) -> Result<&Token> {
-        self.tokens
-            .get(self.curr - 1)
-            .ok_or_else(|| "Index should be valid when calling peek".into())
+        self.curr.checked_sub(1)
+        .and_then(|idx| self.tokens.get(idx))
+        .ok_or_else(|| "Index should be valid when calling peek".into())
     }
 }
 
